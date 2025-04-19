@@ -1,15 +1,50 @@
-/*
-Raylib example file.
-This is an example main file for a simple raylib project.
-Use this as a starting point or replace it with your code.
-
-by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
-
-*/
-
+#include <stdio.h>
+#include <string.h>
 #include "raylib.h"
+#include "rlgl.h"
+#include "raymath.h"
+#include "interfaces.h"
+#include "draw.h"
 
-#include "resource_dir.h"	// utility header for SearchAndSetResourceDir
+void handleCameraEvents(Camera2D* camera)
+{
+	// Translate based on mouse left click
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+	{
+		// Prevent panning outside of area
+		if (camera->zoom > 1.0f)
+		{
+			Vector2 delta = GetMouseDelta();
+			delta = Vector2Scale(delta, -1.0f / camera->zoom);
+			camera->target = Vector2Add(camera->target, delta);
+		}
+	}
+	// Zoom based on mouse right click
+	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+	{
+		// Get the world point that is under the mouse
+		Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), *camera);
+		camera->offset = GetMousePosition();
+		camera->target = mouseWorldPos;
+	}
+	if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+	{
+		// Uses log scaling to provide consistent zoom speed
+		float deltaX = GetMouseDelta().x;
+		if ((deltaX > 0.0f) || (camera->zoom > 1.0f)) // prevent zooming outside
+		{
+			float scale = 0.005f * deltaX;
+			camera->zoom = Clamp(expf(logf(camera->zoom) + scale), 0.125f, 64.0f);
+		}
+	}
+	if (IsKeyPressed(KEY_R))
+	{
+		// Reset view, zoom and panning
+		camera->zoom = 1.0f;
+		camera->target = (Vector2){ 0.0f, 0.0f };
+		camera->offset = (Vector2){ 0.0f, 0.0f };
+	}
+}
 
 int main ()
 {
@@ -17,36 +52,45 @@ int main ()
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
 	// Create the window and OpenGL context
-	InitWindow(1280, 800, "Hello Raylib");
+	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "BEV Viewer");
+	SetTargetFPS(60);
+	Camera2D camera = { 0 };
+	camera.zoom = 1.0f;
 
-	// Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
-	SearchAndSetResourceDir("resources");
-
-	// Load a texture from the resources directory
-	Texture wabbit = LoadTexture("wabbit_alpha.png");
+	/* Initialization */
+	State state;
+	DetectionList detList;
+	memset(&detList, 0, sizeof(DetectionList));
+	detList.detections[0].posX = 40;
+	detList.detections[0].posY = 20;
+	detList.detections[1].posX = 20;
+	detList.detections[1].posY = 25;
+	detList.numValidDets = 2;
+	state.pDetList = &detList;
 	
 	// game loop
 	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
 	{
-		// drawing
+		/* Event handling */
+		handleCameraEvents(&camera);
+
+		/* Update state */
+
+		/* Drawing */
 		BeginDrawing();
 
-		// Setup the back buffer for drawing (clear color and depth buffers)
-		ClearBackground(BLACK);
+			ClearBackground(BG_COLOR);
 
-		// draw some text using the default font
-		DrawText("Hello Raylib", 200,200,20,WHITE);
+			BeginMode2D(camera);
 
-		// draw our texture to the screen
-		DrawTexture(wabbit, 400, 200, WHITE);
+				drawAxis();
 		
-		// end the frame and get ready for the next one  (display frame, poll input, etc...)
+				drawDetections(state.pDetList);
+
+			EndMode2D();
+
 		EndDrawing();
 	}
-
-	// cleanup
-	// unload our texture so it can be cleaned up
-	UnloadTexture(wabbit);
 
 	// destroy the window and cleanup the OpenGL context
 	CloseWindow();
