@@ -3,17 +3,15 @@
 #include "raylib.h"
 #include "draw.h"
 
-void drawDetections(DetectionList* pDetList)
+void drawDetections(const DetectionList& detList)
 {
-	short int iter;
 	int x_pix, y_pix;
-	Detection curDet;
 
-	for (iter = 0; iter < pDetList->numValidDets; iter++)
+	for (Detection curDet : detList)
 	{
-		curDet = pDetList->detections[iter];
+		Color color = (curDet.quality == 1) ? GREEN : MAROON;
 		transformXYToPixel(curDet.posX, curDet.posY, &x_pix, &y_pix);
-		DrawCircle(x_pix, y_pix, DET_RADIUS, MAROON);
+		DrawCircle(x_pix, y_pix, DET_RADIUS, color);
 	}
 }
 
@@ -46,6 +44,16 @@ void drawAxis()
 			DrawText(tickValueText, WINDOW_HALF_W + 5, yTickPos - 6, 11, AXIS_COLOR);
 		}
 	}
+}
+
+void drawInfoText(State& state)
+{
+	char frameText[15];
+	sprintf(frameText, "Frame: %d", state.getCurrentFrame());
+	DrawText(frameText, 10, 10, INFO_FONT_SIZE, WHITE);
+	DrawText("A/D: Moves between frames", 10, 35, INFO_FONT_SIZE, WHITE);
+	DrawText("R: Reset view", 10, 60, INFO_FONT_SIZE, WHITE);
+	DrawText("Right click: Zoom", 10, 85, INFO_FONT_SIZE, WHITE);
 }
 
 void transformXYToPixel(float x, float y, int* x_pixel, int* y_pixel)

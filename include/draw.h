@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "interfaces.h"
+#include <vector>
 
 #define WINDOW_WIDTH (600)
 #define WINDOW_HEIGHT (800)
@@ -13,10 +14,13 @@
 #define AXIS_Y_RANGE_M (200.0f)
 
 #define BG_COLOR BLACK
-#define AXIS_COLOR ((Color) { 120, 120, 120, 255 })
-#define DET_RADIUS (5)
+#define DET_RADIUS (3)
+#define INFO_FONT_SIZE (18)
 
-void drawDetections(DetectionList* pDetList);
+constexpr Color AXIS_COLOR = { 120, 120, 120, 255 };
+
+void drawDetections(const DetectionList& detList);
+void drawInfoText(State& state);
 void drawAxis();
 void transformXYToPixel(float x, float y, int* x_pixel, int* y_pixel);
 void transformPixelToXY(int x_pixel, int y_pixel, float* x, float* y);

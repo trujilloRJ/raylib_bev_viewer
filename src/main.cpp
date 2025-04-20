@@ -1,10 +1,15 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include <string.h>
+#include <iostream>
 #include "raylib.h"
 #include "rlgl.h"
 #include "raymath.h"
 #include "interfaces.h"
 #include "draw.h"
+#include "csv.h"
+#include "raylib_utils.h"
+
+constexpr int FPS = 60;
 
 void handleCameraEvents(Camera2D* camera)
 {
@@ -41,8 +46,8 @@ void handleCameraEvents(Camera2D* camera)
 	{
 		// Reset view, zoom and panning
 		camera->zoom = 1.0f;
-		camera->target = (Vector2){ 0.0f, 0.0f };
-		camera->offset = (Vector2){ 0.0f, 0.0f };
+		camera->target = {0.0f, 0.0f};
+		camera->offset = {0.0f, 0.0f};
 	}
 }
 
@@ -53,28 +58,44 @@ int main ()
 
 	// Create the window and OpenGL context
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "BEV Viewer");
-	SetTargetFPS(60);
+	SetTargetFPS(FPS);
 	Camera2D camera = { 0 };
 	camera.zoom = 1.0f;
 
 	/* Initialization */
-	State state;
-	DetectionList detList;
-	memset(&detList, 0, sizeof(DetectionList));
-	detList.detections[0].posX = 40;
-	detList.detections[0].posY = 20;
-	detList.detections[1].posX = 20;
-	detList.detections[1].posY = 25;
-	detList.numValidDets = 2;
-	state.pDetList = &detList;
-	
+	DetectionMap detMap;
+	int lastFrame;
+	readDetections("sample_data.csv", detMap, lastFrame);
+	State state = State(detMap, lastFrame);
+	int frameCounter = 0;
+
 	// game loop
-	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
+	while (!WindowShouldClose())
 	{
+		frameCounter++;
+
 		/* Event handling */
 		handleCameraEvents(&camera);
+		if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D))
+		{
+			// introduce a delay to prevent too fast frame cycling
+			if (framesToMs(frameCounter, FPS) > 120.0)
+			{
+				state.increaseFrames(1); 
+				frameCounter = 0;
+			}
+		}
+		if (IsKeyPressed(KEY_A) || IsKeyDown(KEY_A))
+		{
+			if (framesToMs(frameCounter, FPS) > 120.0)
+			{
+				state.decreaseFrames(1);
+				frameCounter = 0;
+			}
+		}
 
 		/* Update state */
+		const DetectionList* pCurDets = state.sliceDetections();
 
 		/* Drawing */
 		BeginDrawing();
@@ -83,9 +104,9 @@ int main ()
 
 			BeginMode2D(camera);
 
+				drawDetections(*(pCurDets));
 				drawAxis();
-		
-				drawDetections(state.pDetList);
+				drawInfoText(state);
 
 			EndMode2D();
 
