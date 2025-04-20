@@ -11,7 +11,6 @@ void readDetections(char* detFilename, DetectionMap& detMap, int& lastFrame)
     FILE* fp;
     char row[MAXCHAR];
     char* token;
-    int detIndex;
     int frame;
 
     fp = fopen(detFilename, "r");

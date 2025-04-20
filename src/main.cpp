@@ -68,6 +68,8 @@ int main ()
 	readDetections("sample_data.csv", detMap, lastFrame);
 	State state = State(detMap, lastFrame);
 	int frameCounter = 0;
+	DetectionList curDets;
+	Detection selectedDet;
 
 	// game loop
 	while (!WindowShouldClose())
@@ -76,12 +78,32 @@ int main ()
 
 		/* Event handling */
 		handleCameraEvents(&camera);
+			bool collideWithDet;
+			int x_pixel, y_pixel;
+			Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
+			if (curDets.size() > 0) {
+				for (Detection& det : curDets)
+				{
+					transformXYToPixel(det.posX, det.posY, &x_pixel, &y_pixel);
+					collideWithDet = CheckCollisionPointCircle(mousePos, { (float)x_pixel, (float)y_pixel }, DET_RADIUS);
+					if (collideWithDet) {
+						selectedDet = det;
+						break;
+					}
+				}
+				state.detSelected = collideWithDet;
+			}
+		//if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+		//{
+		//}
+		if (IsKeyPressed(KEY_H)) state.toggleShowCommands();
 		if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D))
 		{
 			// introduce a delay to prevent too fast frame cycling
 			if (framesToMs(frameCounter, FPS) > 120.0)
 			{
-				state.increaseFrames(1); 
+				state.increaseFrames(1);
+				state.detSelected = false;
 				frameCounter = 0;
 			}
 		}
@@ -90,12 +112,13 @@ int main ()
 			if (framesToMs(frameCounter, FPS) > 120.0)
 			{
 				state.decreaseFrames(1);
+				state.detSelected = false;
 				frameCounter = 0;
 			}
 		}
 
 		/* Update state */
-		const DetectionList* pCurDets = state.sliceDetections();
+		curDets = state.sliceDetections();
 
 		/* Drawing */
 		BeginDrawing();
@@ -104,11 +127,15 @@ int main ()
 
 			BeginMode2D(camera);
 
-				drawDetections(*(pCurDets));
 				drawAxis();
-				drawInfoText(state);
+				drawDetections(curDets);
 
 			EndMode2D();
+
+			// Outside of camera context, so it will not be affected by zoom
+			drawInfoText(state);
+			if (state.detSelected)
+				drawTooltipDet(selectedDet, 500., 700.);
 
 		EndDrawing();
 	}

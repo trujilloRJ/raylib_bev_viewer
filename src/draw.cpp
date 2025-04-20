@@ -3,13 +3,13 @@
 #include "raylib.h"
 #include "draw.h"
 
-void drawDetections(const DetectionList& detList)
+void drawDetections(DetectionList& detList)
 {
 	int x_pix, y_pix;
 
 	for (Detection curDet : detList)
 	{
-		Color color = (curDet.quality == 1) ? GREEN : MAROON;
+		Color color = (curDet.quality == 1) ? GREEN : BAD_DET_COLOR;
 		transformXYToPixel(curDet.posX, curDet.posY, &x_pix, &y_pix);
 		DrawCircle(x_pix, y_pix, DET_RADIUS, color);
 	}
@@ -48,12 +48,35 @@ void drawAxis()
 
 void drawInfoText(State& state)
 {
+	Font font = GetFontDefault();
 	char frameText[15];
 	sprintf(frameText, "Frame: %d", state.getCurrentFrame());
-	DrawText(frameText, 10, 10, INFO_FONT_SIZE, WHITE);
-	DrawText("A/D: Moves between frames", 10, 35, INFO_FONT_SIZE, WHITE);
-	DrawText("R: Reset view", 10, 60, INFO_FONT_SIZE, WHITE);
-	DrawText("Right click: Zoom", 10, 85, INFO_FONT_SIZE, WHITE);
+	DrawTextEx(font, frameText, { 5, 10 }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+
+	if (state.isShowCommands())
+	{
+		DrawTextEx(font, "H: Hide commands", { 5, 10 + INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "A/D: Moves between frames", { 5, 10 + 2 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "R: Reset view", { 5, 10 + 3 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "Right click: Zoom", { 5, 10 + 4 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	}
+	else
+	{
+		DrawTextEx(font, "H: Show all commands", { 5, 10 + INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	}
+}
+
+void drawTooltipDet(Detection& det, float initialX, float initialY) {
+	Font font = GetFontDefault();
+	char floatText[15];
+
+	DrawRectangleLinesEx({ initialX - 5, initialY - 5, 98, 98 }, 1, { 245, 245, 245, 255 });
+
+	DrawTextEx(font, "Detection", { initialX, initialY }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	sprintf(floatText, "x: %.1f m", det.posX);
+	DrawTextEx(font, floatText, { initialX, initialY + INFO_Y_SPACING}, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	sprintf(floatText, "y: %.1f m", det.posY);
+	DrawTextEx(font, floatText, { initialX, initialY + 2 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 }
 
 void transformXYToPixel(float x, float y, int* x_pixel, int* y_pixel)
