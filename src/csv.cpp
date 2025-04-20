@@ -68,4 +68,6 @@ void readDetections(char* detFilename, DetectionMap& detMap, int& lastFrame)
         rowCounter++;
     }
     lastFrame = frame;
+
+    fclose(fp);
 }

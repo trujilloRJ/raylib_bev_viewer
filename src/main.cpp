@@ -70,6 +70,34 @@ void handleMouseHover(Camera2D& camera, State& state, DetectionList& curDets)
 	}
 }
 
+void handleIncrementFrame(State& state, KeyboardKey key, int frameDelta, int& frameCounter)
+{
+	if (IsKeyPressed(key))
+	{
+		frameCounter = 0;
+		state.increaseFrames(frameDelta);
+		state.b_detSelected = false;
+	}
+	if (IsKeyDown(key)) {
+		// introduce a delay to prevent too fast frame cycling
+		if (framesToMs(frameCounter, FPS) > 500.0) state.increaseFrames(frameDelta);
+	}
+}
+
+void handleDecreaseFrame(State& state, KeyboardKey key, int frameDelta, int& frameCounter)
+{
+	if (IsKeyPressed(key))
+	{
+		frameCounter = 0;
+		state.decreaseFrames(frameDelta);
+		state.b_detSelected = false;
+	}
+	if (IsKeyDown(key)) {
+		// introduce a delay to prevent too fast frame cycling
+		if (framesToMs(frameCounter, FPS) > 500.0) state.decreaseFrames(frameDelta);
+	}
+}
+
 int main ()
 {
 	// Tell the window to use vsync and work on high DPI displays
@@ -85,7 +113,8 @@ int main ()
 	DetectionList curDets; 
 	DetectionMap detMap;
 	int lastFrame;
-	readDetections("sample_data.csv", detMap, lastFrame);
+	//readDetections("sample_data.csv", detMap, lastFrame);
+	readDetections("gen_data.csv", detMap, lastFrame);
 	int frameCounter = 0;
 	State state = State(detMap, lastFrame);
 
@@ -100,25 +129,11 @@ int main ()
 		handleMouseHover(camera, state, curDets);
 
 		if (IsKeyPressed(KEY_H)) state.toggleShowCommands();
-		if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D))
-		{
-			// introduce a delay to prevent too fast frame cycling
-			if (framesToMs(frameCounter, FPS) > 120.0)
-			{
-				state.increaseFrames(1);
-				state.b_detSelected = false;
-				frameCounter = 0;
-			}
-		}
-		if (IsKeyPressed(KEY_A) || IsKeyDown(KEY_A))
-		{
-			if (framesToMs(frameCounter, FPS) > 120.0)
-			{
-				state.decreaseFrames(1);
-				state.b_detSelected = false;
-				frameCounter = 0;
-			}
-		}
+
+		handleIncrementFrame(state, KEY_D, 1, frameCounter);
+		handleIncrementFrame(state, KEY_W, 10, frameCounter);		
+		handleDecreaseFrame(state, KEY_A, 1, frameCounter);
+		handleDecreaseFrame(state, KEY_Q, 10, frameCounter);
 
 		/* Update state */
 		curDets = state.sliceDetections();

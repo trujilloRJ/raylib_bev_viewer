@@ -52,19 +52,20 @@ void drawInfoText(State& state)
 {
 	Font font = GetFontDefault();
 	char frameText[15];
-	sprintf(frameText, "Frame: %d", state.getCurrentFrame());
+	sprintf(frameText, "FRAME: %d", state.getCurrentFrame());
 	DrawTextEx(font, frameText, { 5, 10 }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 
 	if (state.isShowCommands())
 	{
-		DrawTextEx(font, "H: Hide commands", { 5, 10 + INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
-		DrawTextEx(font, "A/D: Moves between frames", { 5, 10 + 2 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
-		DrawTextEx(font, "R: Reset view", { 5, 10 + 3 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
-		DrawTextEx(font, "Right click: Zoom", { 5, 10 + 4 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "H: HIDE COMMANDS", { 5, 10 + INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "A/D: +/- 1 FRAME", { 5, 10 + 2 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "Q/W: +/- 10 FRAMES", { 5, 10 + 3 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "R: RESET VIEW", { 5, 10 + 4 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "RIGHT CLIK: ZOOM", { 5, 10 + 5 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 	}
 	else
 	{
-		DrawTextEx(font, "H: Show all commands", { 5, 10 + INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+		DrawTextEx(font, "H: SHOW COMMANDS", { 5, 10 + INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 	}
 }
 
@@ -72,13 +73,16 @@ void drawTooltipDet(Detection& det, float initialX, float initialY) {
 	Font font = GetFontDefault();
 	char floatText[15];
 
-	//DrawRectangleLinesEx({ initialX - 5, initialY - 5, 98, 98 }, 1, { 245, 245, 245, 255 });
-	DrawRectangleRec({ initialX - 10, initialY - 10, 110, 90 }, { 50, 50, 50, 150 });
+	DrawRectangleRec({ initialX, initialY, 110, 90 }, { 50, 50, 50, 150 });
+	initialX += 10; 
+	initialY += 10;
 
-	DrawTextEx(font, "Detection", { initialX, initialY }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	//DrawTextEx(font, "DETECTION", { initialX, initialY }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 	sprintf(floatText, "x: %.1f m", det.posX);
-	DrawTextEx(font, floatText, { initialX, initialY + INFO_Y_SPACING}, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	DrawTextEx(font, floatText, { initialX, initialY}, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 	sprintf(floatText, "y: %.1f m", det.posY);
+	DrawTextEx(font, floatText, { initialX, initialY + 1 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
+	sprintf(floatText, "v: %.1f m/s", det.doppler);
 	DrawTextEx(font, floatText, { initialX, initialY + 2 * INFO_Y_SPACING }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 }
 

@@ -402,3 +402,4 @@ Makefile
 /*.sln
 
 *.ipynb
+gen_dets.csv

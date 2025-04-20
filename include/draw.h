@@ -22,7 +22,7 @@
 #define DET_RADIUS (3)
 
 constexpr int INFO_Y_SPACING = 25;
-constexpr int INFO_FONT_SIZE = 18;
+constexpr int INFO_FONT_SIZE = 16;
 constexpr float INFO_FONT_SPACING = 2.0;
 constexpr Color BG_COLOR = { 29, 22, 22, 255 };
 constexpr Color AXIS_COLOR = { 238, 238, 238, 125 };

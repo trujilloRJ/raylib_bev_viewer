@@ -1,9 +1,9 @@
 #ifndef INTERFACES
 #define INTERFACES
 
-#include <unordered_map>
-
-#define MAX_NUM_DET (500)
+//#include <unordered_map>
+#include <vector>
+#include <map>
 
 using namespace std;
 
@@ -14,9 +14,9 @@ typedef struct detection {
 	int quality;
 } Detection;
 
-typedef std::vector<Detection> DetectionList;
+typedef vector<Detection> DetectionList;
 
-typedef unordered_map<int, DetectionList> DetectionMap;
+typedef map<int, DetectionList> DetectionMap;
 
 class State {
 public:
