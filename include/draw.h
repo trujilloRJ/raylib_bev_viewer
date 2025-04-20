@@ -30,7 +30,7 @@ constexpr Color FONT_COLOR = { 238, 238, 238, 255 };
 constexpr Color TOOLTIP_FONT_COLOR = BG_COLOR;
 constexpr Color BAD_DET_COLOR = { 216, 64, 64, 255 };
 
-void drawDetections(DetectionList& detList);
+void drawDetections(DetectionList& detList, bool hoverDet, int selectedDetIndex);
 void drawInfoText(State& state);
 void drawAxis();
 void drawTooltipDet(Detection& det, float initialX, float initialY);

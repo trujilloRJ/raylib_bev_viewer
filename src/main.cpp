@@ -51,6 +51,25 @@ void handleCameraEvents(Camera2D* camera)
 	}
 }
 
+void handleMouseHover(Camera2D& camera, State& state, DetectionList& curDets)
+{
+	int x_pixel, y_pixel, index;
+	bool collideWithDet = false;
+	Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
+	if (curDets.size() > 0) {
+		for (index = 0; index < curDets.size(); index++)
+		{
+			transformXYToPixel(curDets[index].posX, curDets[index].posY, &x_pixel, &y_pixel);
+			collideWithDet = CheckCollisionPointCircle(mousePos, { (float)x_pixel, (float)y_pixel }, DET_RADIUS);
+			if (collideWithDet) {
+				state.detSelIndex = index;
+				break;
+			}
+		}
+		state.b_detSelected = collideWithDet;
+	}
+}
+
 int main ()
 {
 	// Tell the window to use vsync and work on high DPI displays
@@ -63,13 +82,12 @@ int main ()
 	camera.zoom = 1.0f;
 
 	/* Initialization */
+	DetectionList curDets; 
 	DetectionMap detMap;
 	int lastFrame;
 	readDetections("sample_data.csv", detMap, lastFrame);
-	State state = State(detMap, lastFrame);
 	int frameCounter = 0;
-	DetectionList curDets;
-	Detection selectedDet;
+	State state = State(detMap, lastFrame);
 
 	// game loop
 	while (!WindowShouldClose())
@@ -78,24 +96,9 @@ int main ()
 
 		/* Event handling */
 		handleCameraEvents(&camera);
-			bool collideWithDet;
-			int x_pixel, y_pixel;
-			Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
-			if (curDets.size() > 0) {
-				for (Detection& det : curDets)
-				{
-					transformXYToPixel(det.posX, det.posY, &x_pixel, &y_pixel);
-					collideWithDet = CheckCollisionPointCircle(mousePos, { (float)x_pixel, (float)y_pixel }, DET_RADIUS);
-					if (collideWithDet) {
-						selectedDet = det;
-						break;
-					}
-				}
-				state.detSelected = collideWithDet;
-			}
-		//if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
-		//{
-		//}
+
+		handleMouseHover(camera, state, curDets);
+
 		if (IsKeyPressed(KEY_H)) state.toggleShowCommands();
 		if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D))
 		{
@@ -103,7 +106,7 @@ int main ()
 			if (framesToMs(frameCounter, FPS) > 120.0)
 			{
 				state.increaseFrames(1);
-				state.detSelected = false;
+				state.b_detSelected = false;
 				frameCounter = 0;
 			}
 		}
@@ -112,7 +115,7 @@ int main ()
 			if (framesToMs(frameCounter, FPS) > 120.0)
 			{
 				state.decreaseFrames(1);
-				state.detSelected = false;
+				state.b_detSelected = false;
 				frameCounter = 0;
 			}
 		}
@@ -128,14 +131,19 @@ int main ()
 			BeginMode2D(camera);
 
 				drawAxis();
-				drawDetections(curDets);
+				drawDetections(curDets, state.b_detSelected, state.detSelIndex);
 
 			EndMode2D();
 
 			// Outside of camera context, so it will not be affected by zoom
 			drawInfoText(state);
-			if (state.detSelected)
-				drawTooltipDet(selectedDet, 500., 700.);
+
+			// Drawing Tooltip
+			if (state.b_detSelected)
+			{
+				Vector2 localMousePos = GetMousePosition();
+				drawTooltipDet(curDets[state.detSelIndex], localMousePos.x + 5, localMousePos.y + 5);
+			}
 
 		EndDrawing();
 	}

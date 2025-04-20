@@ -3,15 +3,17 @@
 #include "raylib.h"
 #include "draw.h"
 
-void drawDetections(DetectionList& detList)
+void drawDetections(DetectionList& detList, bool hoverDet, int selectedDetIndex)
 {
-	int x_pix, y_pix;
+	int x_pix, y_pix, i;
 
-	for (Detection curDet : detList)
+	for (i = 0; i < detList.size(); i++)
 	{
+		Detection curDet = detList[i];
 		Color color = (curDet.quality == 1) ? GREEN : BAD_DET_COLOR;
+		float radius = (hoverDet && (i == selectedDetIndex)) ? DET_RADIUS + 3 : DET_RADIUS;
 		transformXYToPixel(curDet.posX, curDet.posY, &x_pix, &y_pix);
-		DrawCircle(x_pix, y_pix, DET_RADIUS, color);
+		DrawCircle(x_pix, y_pix, radius, color);
 	}
 }
 
@@ -70,7 +72,8 @@ void drawTooltipDet(Detection& det, float initialX, float initialY) {
 	Font font = GetFontDefault();
 	char floatText[15];
 
-	DrawRectangleLinesEx({ initialX - 5, initialY - 5, 98, 98 }, 1, { 245, 245, 245, 255 });
+	//DrawRectangleLinesEx({ initialX - 5, initialY - 5, 98, 98 }, 1, { 245, 245, 245, 255 });
+	DrawRectangleRec({ initialX - 10, initialY - 10, 110, 90 }, { 50, 50, 50, 150 });
 
 	DrawTextEx(font, "Detection", { initialX, initialY }, INFO_FONT_SIZE, INFO_FONT_SPACING, FONT_COLOR);
 	sprintf(floatText, "x: %.1f m", det.posX);

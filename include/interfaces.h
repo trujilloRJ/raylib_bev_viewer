@@ -22,7 +22,7 @@ class State {
 public:
 	State(DetectionMap& detMap, int lastFrame) :
 		detMap(detMap), currentFrame(detMap.begin()->first), lastFrame(lastFrame), showCommands(false),
-		detSelected(false)
+		b_detSelected(false), detSelIndex(0)
 	{};
 
 	DetectionList sliceDetections() { return detMap.at(currentFrame); };
@@ -35,7 +35,8 @@ public:
 	void toggleShowCommands() { showCommands = !showCommands; }
 	void increaseFrames(int value);
 	void decreaseFrames(int value);
-	bool detSelected;
+	bool b_detSelected;
+	int detSelIndex;
 
 private:
 	int currentFrame;
