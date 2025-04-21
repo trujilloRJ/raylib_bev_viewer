@@ -31,10 +31,14 @@ constexpr Color TOOLTIP_FONT_COLOR = BG_COLOR;
 constexpr Color BAD_DET_COLOR = { 216, 64, 64, 255 };
 
 void drawDetections(DetectionList& detList, bool hoverDet, int selectedDetIndex);
+void drawTracks(TrackList& tList, bool hoverTrack, int selectedIndex);
 void drawInfoText(State& state);
 void drawAxis();
 void drawTooltipDet(Detection& det, float initialX, float initialY);
+void drawTooltipTrk(Track& trk, float initialX, float initialY);
 void transformXYToPixel(float x, float y, int* x_pixel, int* y_pixel);
+Vector2 getTLRotatedAroundCenter(int x, int y, float w, float l, float angle_rad);         // Get Top-Left corner of rectangle after being rotated around its center
+void transformWLToPixel(float w, float l, float* wp, float* lp);
 void transformPixelToXY(int x_pixel, int y_pixel, float* x, float* y);
 
 #endif // !DRAW

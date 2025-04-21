@@ -51,12 +51,31 @@ void handleCameraEvents(Camera2D* camera)
 	}
 }
 
-void handleMouseHover(Camera2D& camera, State& state, DetectionList& curDets)
+void handleMouseHover(Camera2D& camera, State& state, DetectionList& curDets, TrackList& curTrks)
 {
 	int x_pixel, y_pixel, index;
+	float wp, lp;
+	bool collideWithTrk = false;
 	bool collideWithDet = false;
 	Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
-	if (curDets.size() > 0) {
+
+	// Check hover on tracks
+	if (curTrks.size() > 0) {
+		for (index = 0; index < curTrks.size(); index++)
+		{
+			transformXYToPixel(curTrks[index].posX, curTrks[index].posY, &x_pixel, &y_pixel);
+			transformWLToPixel(curTrks[index].width, curTrks[index].length, &wp, &lp);
+			collideWithTrk = CheckCollisionPointRec(mousePos, {(float)x_pixel, (float)y_pixel, wp, lp});
+			if (collideWithTrk) {
+				state.trkSelIndex = index;
+				break;
+			}
+		}
+		state.b_trkSelected = collideWithTrk;
+	}
+
+	// Check hover on detections, only if trk is not hover
+	if ((!collideWithTrk) && (curDets.size() > 0)) {
 		for (index = 0; index < curDets.size(); index++)
 		{
 			transformXYToPixel(curDets[index].posX, curDets[index].posY, &x_pixel, &y_pixel);
@@ -68,6 +87,7 @@ void handleMouseHover(Camera2D& camera, State& state, DetectionList& curDets)
 		}
 		state.b_detSelected = collideWithDet;
 	}
+
 }
 
 void handleIncrementFrame(State& state, KeyboardKey key, int frameDelta, int& frameCounter)
@@ -101,7 +121,7 @@ void handleDecreaseFrame(State& state, KeyboardKey key, int frameDelta, int& fra
 int main ()
 {
 	// Tell the window to use vsync and work on high DPI displays
-	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+	//SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
 	// Create the window and OpenGL context
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "BEV Viewer");
@@ -111,12 +131,16 @@ int main ()
 
 	/* Initialization */
 	DetectionList curDets; 
-	DetectionMap detMap;
-	int lastFrame;
-	//readDetections("sample_data.csv", detMap, lastFrame);
-	readDetections("gen_data.csv", detMap, lastFrame);
+	Detections dets;
+	TrackList curTrks;
+	Tracks trks;
+	CsvReader reader;
+	reader.readDetections("gen_dets.csv", dets);
+	//reader.readDetections("sample_data.csv", dets);
+	//reader.readTracks("sample_tracks.csv", trks);
+	reader.readTracks("gen_tracks.csv", trks);
 	int frameCounter = 0;
-	State state = State(detMap, lastFrame);
+	State state = State(dets.detections.begin()->first, dets.lastFrame);
 
 	// game loop
 	while (!WindowShouldClose())
@@ -126,7 +150,7 @@ int main ()
 		/* Event handling */
 		handleCameraEvents(&camera);
 
-		handleMouseHover(camera, state, curDets);
+		handleMouseHover(camera, state, curDets, curTrks);
 
 		if (IsKeyPressed(KEY_H)) state.toggleShowCommands();
 
@@ -136,7 +160,11 @@ int main ()
 		handleDecreaseFrame(state, KEY_Q, 10, frameCounter);
 
 		/* Update state */
-		curDets = state.sliceDetections();
+		curDets = state.sliceDetections(dets.detections);
+		if (state.getCurrentFrame() <= trks.lastFrame)
+			curTrks = state.sliceTracks(trks.tracks);
+		else
+			curTrks.clear();
 
 		/* Drawing */
 		BeginDrawing();
@@ -146,19 +174,33 @@ int main ()
 			BeginMode2D(camera);
 
 				drawAxis();
+
 				drawDetections(curDets, state.b_detSelected, state.detSelIndex);
+
+				if (curTrks.size() > 0) drawTracks(curTrks, state.b_trkSelected, state.trkSelIndex);
+
+				//float x = 200.0; float y = 100.0;
+				//float w = 100.; float h = 50.;
+				//float angle = 170.;
+				//float cx = x + w / 2;
+				//float cy = y + h / 2;
+				//float xr, yr, cxr, cyr, wr, hr;
+				//rotateXY(w, h, angle * DEG2RAD, wr, hr);
+				//cxr = x + wr/2; cyr = y + hr/2;
+				//DrawRectanglePro({ x - (cxr - cx), y - (cyr - cy), w, h}, {0.f, 0.f}, angle, MAROON);
+
 
 			EndMode2D();
 
 			// Outside of camera context, so it will not be affected by zoom
 			drawInfoText(state);
 
-			// Drawing Tooltip
-			if (state.b_detSelected)
-			{
-				Vector2 localMousePos = GetMousePosition();
-				drawTooltipDet(curDets[state.detSelIndex], localMousePos.x + 5, localMousePos.y + 5);
-			}
+			// Drawing Tooltips
+			Vector2 localMousePos = GetMousePosition();
+			float x0 = localMousePos.x + 5;
+			float y0 = localMousePos.y + 5;
+			if (state.b_trkSelected) drawTooltipTrk(curTrks[state.trkSelIndex], x0, y0);
+			if (state.b_detSelected) drawTooltipDet(curDets[state.detSelIndex], x0, y0);
 
 		EndDrawing();
 	}
